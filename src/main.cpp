@@ -116,6 +116,7 @@ void loop() {
 
 
     // This delay is to make the output more human readable
+    Serial.print("Blacky");
     // Remove it when you're not trying to see the output
   }
 }
