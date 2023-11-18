@@ -1,3 +1,4 @@
+
 #include <ps5Controller.h>
 #include <iostream>
 #include <HardwareSerial.h>
@@ -19,13 +20,12 @@ const uint8_t tx2Pin = 17;
 
 uint16_t count=0;
 
-struct LobotServo { 
+struct BLK { 
   uint8_t  ID; 
   uint16_t Position;
 };
 
-LobotServo servos[0];   
-
+BLK servos[13];   
 int pos = 500;
 
 
@@ -47,16 +47,17 @@ void moveServo(uint8_t servoID, uint16_t Position, uint16_t Time)
   buf[8] = GET_LOW_BYTE(Position);        
   buf[9] = GET_HIGH_BYTE(Position);        
   SerialPort.write(buf,10);
-  for (int i = 0; i < 10; i++){
+  /*for (int i = 0; i < 10; i++){
     Serial.print("0X");
     Serial.print(buf[i], HEX);
     Serial.print(" ");
-    }
-  Serial.println();
+    }*/
+  //Serial.println();
+  delay(Time);
 }
 
 
-void moveServos(LobotServo servos[], uint8_t Num, uint16_t Time)
+void moveServos(BLK servos[], uint8_t Num, uint16_t Time)
 {
 	uint8_t buf[103]; 
 	if (Num < 1 || Num > 32 || !(Time > 0)) {
@@ -76,18 +77,39 @@ void moveServos(LobotServo servos[], uint8_t Num, uint16_t Time)
 		buf[index++] = GET_HIGH_BYTE(servos[i].Position);
 	}
 	SerialPort.write(buf, buf[2] + 2);
+  delay(Time);
+}
+
+void serv14(int pos1,int pos2,int pos3,int pos4,int pos5,int pos6,int pos7,int pos8,int pos9,int pos10,int pos11,int pos12,int pos13,int pos14,int Time)
+{
+  servos[0].Position = pos1;
+  servos[1].Position = pos2;
+  servos[2].Position = pos3;
+  servos[3].Position = pos4;
+  servos[4].Position = pos5;
+  servos[5].Position = pos6;
+  servos[6].Position = pos7;
+  servos[7].Position = pos8;
+  servos[8].Position = pos9;
+  servos[9].Position = pos10;
+  servos[10].Position = pos11;
+  servos[11].Position = pos12;
+  servos[12].Position = pos13;
+  servos[13].Position = pos14;
+  moveServos(servos,14,Time);
 }
 
 void setup() {
   Serial.begin(9600);
   SerialPort.begin(9600, SERIAL_8N1, rx2Pin, tx2Pin);
-  ps5.begin("D0:BC:C1:05:69:31"); 
+  //ps5.begin("D0:BC:C1:05:69:31");  mando de renzo
+  ps5.begin("4c:b9:9b:3b:f6:6e");
   
   Serial.println("Ready.");
-  servos[0].ID = 14;       
-  servos[0].Position = 500;  
-  moveServos(servos, 1, 1000);
-  delay(1000);
+  for (int i = 0; i < 14; i++) {
+    servos[i].ID = i+1; 
+  }  
+  
 }
 
 void loop() {
@@ -97,26 +119,25 @@ void loop() {
 //  }
 
   while (ps5.isConnected() == true) {
+
     if (ps5.Right()) {
       Serial.printf("moving right %d", pos);
       pos = pos + 10;
-      servos[0].Position = pos;  
-      moveServos(servos, 1, 50);
-      delay(50);
-    };
+      moveServo(14, pos, 50);
+    }
+
     if (ps5.Left()) {
       Serial.printf("moving left %d", pos);
       pos = pos - 10;
-      servos[0].Position = pos;  
-      moveServos(servos, 1, 50);
-      delay(50);
-    };
-
+      moveServo(14, pos, 50);
+    }
+    if (ps5.Square()) {
+      serv14(500,500,500,500,500,500,500,500,500,500,500,500,500,500,400);
+    }
 
 
 
     // This delay is to make the output more human readable
-    Serial.print("Blacky");
     // Remove it when you're not trying to see the output
   }
 }
